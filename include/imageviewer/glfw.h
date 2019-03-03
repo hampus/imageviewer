@@ -22,6 +22,8 @@
 #include <glad/glad.h>
 #include <stdexcept>
 
+namespace imageviewer {
+
 inline const char* get_gl_error_string(GLenum error) {
     switch (error) {
     case GL_NO_ERROR:
@@ -47,5 +49,7 @@ inline void check_for_gl_error() {
         throw std::runtime_error(get_gl_error_string(error));
     }
 }
+
+} // namespace imageviewer
 
 #endif

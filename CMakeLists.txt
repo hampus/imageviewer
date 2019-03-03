@@ -10,5 +10,8 @@ add_subdirectory(external/glfw)
 # Glad
 add_subdirectory(external/glad)
 
+# GLM
+add_subdirectory(external/glm)
+
 # Build application
 add_subdirectory(src)

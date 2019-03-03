@@ -26,6 +26,8 @@ class ImageViewer {
   public:
     void load_image(const std::string& filename);
 
+    void render(double time_delta);
+
   private:
     Texture texture_;
 };

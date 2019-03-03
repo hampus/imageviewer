@@ -27,4 +27,9 @@ void ImageViewer::load_image(const std::string& filename) {
     texture_ = Texture(img);
 }
 
+void ImageViewer::render(double time_delta) {
+    glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+}
+
 } // namespace imageviewer

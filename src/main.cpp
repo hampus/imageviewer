@@ -23,6 +23,7 @@ using imageviewer::ImageViewer;
 
 void error_callback(int error, const char* description) {
     std::cerr << "Error: " << description << "\n";
+    exit(1);
 }
 
 int main(int argc, char* argv[]) {
@@ -60,12 +61,13 @@ int main(int argc, char* argv[]) {
     ImageViewer viewer;
     viewer.load_image(filename);
 
-    glfwSwapInterval(1);
-
+    double last_time = glfwGetTime();
     while (!glfwWindowShouldClose(window)) {
-        glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        double time = glfwGetTime();
+        viewer.render(time - last_time);
+        last_time = time;
 
+        glfwSwapInterval(1);
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
