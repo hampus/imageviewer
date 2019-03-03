@@ -40,11 +40,11 @@ Starting image viewer...
 Re-generate the [glad](https://github.com/Dav1dde/glad) bindings using:
 
 ```console
-$glad --generator c --spec gl --profile core --api "gles2=3.2" --no-loader --out-path external/glad/
-[03/03/2019 12:28:09][INFO][glad       ]: downloading latest 'gl' specification
-[03/03/2019 12:28:09][INFO][glad.opener]: opening: 'https://raw.githubusercontent.com/KhronosGroup/OpenGL-Registry/master/xml/gl.xml'
-[03/03/2019 12:28:09][INFO][glad       ]: generating 'gl' bindings
-[03/03/2019 12:28:09][INFO][glad       ]: generating 'gl' bindings - done
+$ glad --generator c --spec gl --profile core --api "gles2=3.2" --no-loader --out-path external/glad/
+[INFO][glad       ]: downloading latest 'gl' specification
+[INFO][glad.opener]: opening: 'https://raw.githubusercontent.com/KhronosGroup/OpenGL-Registry/master/xml/gl.xml'
+[INFO][glad       ]: generating 'gl' bindings
+[INFO][glad       ]: generating 'gl' bindings - done
 ```
 
 ## License
