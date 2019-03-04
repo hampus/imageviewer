@@ -17,8 +17,9 @@
 #ifndef IMAGEVIEWER_TEXTURE_H_
 #define IMAGEVIEWER_TEXTURE_H_
 
-#include <imageviewer/Image.h>
 #include <imageviewer/glfw.h>
+
+#include <imageviewer/Image.h>
 
 namespace imageviewer {
 

@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-#include <imageviewer/ImageViewer.h>
 #include <imageviewer/glfw.h>
+
+#include <imageviewer/ImageViewer.h>
 #include <iostream>
 #include <string>
 
@@ -59,7 +60,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Max texture size: " << max_texture_size << "\n";
 
     ImageViewer viewer;
-    viewer.load_image(filename);
+    viewer.init(filename);
 
     double last_time = glfwGetTime();
     while (!glfwWindowShouldClose(window)) {

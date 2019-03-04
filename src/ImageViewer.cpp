@@ -14,17 +14,20 @@
  * limitations under the License.
  */
 
-#include <imageviewer/Image.h>
 #include <imageviewer/ImageViewer.h>
+
+#include <config.h>
+#include <imageviewer/Image.h>
 #include <imageviewer/glfw.h>
 #include <iostream>
 
 namespace imageviewer {
 
-void ImageViewer::load_image(const std::string& filename) {
-    Image img(filename);
+void ImageViewer::init(const std::string& image_filename) {
     // TODO: this assumes that the image fits in a single texture
-    texture_ = Texture(img);
+    texture_ = Texture(Image(image_filename));
+    shader_ = ShaderProgram(DATA_DIR "shaders/vert.glsl",
+                            DATA_DIR "shaders/frag.glsl");
 }
 
 void ImageViewer::render(double time_delta) {

@@ -14,26 +14,9 @@
  * limitations under the License.
  */
 
-#ifndef IMAGEVIEWER_IMAGEVIEWER_H_
-#define IMAGEVIEWER_IMAGEVIEWER_H_
+#ifndef CONFIG_H_
+#define CONFIG_H_
 
-#include <imageviewer/ShaderProgram.h>
-#include <imageviewer/Texture.h>
-#include <string>
-
-namespace imageviewer {
-
-class ImageViewer {
-  public:
-    void init(const std::string& image_filename);
-
-    void render(double time_delta);
-
-  private:
-    Texture texture_;
-    ShaderProgram shader_;
-};
-
-} // namespace imageviewer
+#define DATA_DIR "${DATA_DIR}"
 
 #endif

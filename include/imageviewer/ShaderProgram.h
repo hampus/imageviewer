@@ -14,24 +14,33 @@
  * limitations under the License.
  */
 
-#ifndef IMAGEVIEWER_IMAGEVIEWER_H_
-#define IMAGEVIEWER_IMAGEVIEWER_H_
+#ifndef IMAGEVIEWER_SHADER_PROGRAM_H_
+#define IMAGEVIEWER_SHADER_PROGRAM_H_
 
-#include <imageviewer/ShaderProgram.h>
-#include <imageviewer/Texture.h>
+#include <imageviewer/glfw.h>
+
 #include <string>
 
 namespace imageviewer {
 
-class ImageViewer {
+class ShaderProgram {
   public:
-    void init(const std::string& image_filename);
+    ShaderProgram();
+    ShaderProgram(std::string vertex_file, std::string fragment_file);
+    ~ShaderProgram();
 
-    void render(double time_delta);
+    // No copying
+    ShaderProgram(const ShaderProgram&) = delete;
+    ShaderProgram& operator=(const ShaderProgram&) = delete;
+
+    // Moving
+    ShaderProgram(ShaderProgram&& other);
+    ShaderProgram& operator=(ShaderProgram&& other);
 
   private:
-    Texture texture_;
-    ShaderProgram shader_;
+    GLuint vert_shader_;
+    GLuint frag_shader_;
+    GLuint program_;
 };
 
 } // namespace imageviewer
