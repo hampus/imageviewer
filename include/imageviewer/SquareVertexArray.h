@@ -14,26 +14,32 @@
  * limitations under the License.
  */
 
-#ifndef IMAGEVIEWER_IMAGEVIEWER_H_
-#define IMAGEVIEWER_IMAGEVIEWER_H_
+#include <imageviewer/glfw.h>
 
 #include <imageviewer/ShaderProgram.h>
-#include <imageviewer/SquareVertexArray.h>
-#include <imageviewer/Texture.h>
-#include <string>
+
+#ifndef IMAGEVIEWER_SQUARE_VERTEX_ARRAY_H_
+#define IMAGEVIEWER_SQUARE_VERTEX_ARRAY_H_
 
 namespace imageviewer {
 
-class ImageViewer {
+class SquareVertexArray {
   public:
-    void init(const std::string& image_filename);
+    SquareVertexArray();
+    ~SquareVertexArray();
 
-    void render(double time_delta);
+    // Moving
+    SquareVertexArray(SquareVertexArray&& other);
+    SquareVertexArray& operator=(SquareVertexArray&& other);
+
+    // No copying
+    SquareVertexArray(const SquareVertexArray&) = delete;
+    SquareVertexArray& operator=(const SquareVertexArray&) = delete;
+
+    void render(const ShaderProgram& program);
 
   private:
-    Texture texture_;
-    ShaderProgram shader_;
-    SquareVertexArray square_;
+    GLuint buffer_;
 };
 
 } // namespace imageviewer

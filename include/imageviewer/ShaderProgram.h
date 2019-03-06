@@ -37,6 +37,10 @@ class ShaderProgram {
     ShaderProgram(ShaderProgram&& other);
     ShaderProgram& operator=(ShaderProgram&& other);
 
+    void use();
+
+    GLint get_input_location(const std::string& name) const;
+
   private:
     GLuint vert_shader_;
     GLuint frag_shader_;

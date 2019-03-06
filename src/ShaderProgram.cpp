@@ -133,4 +133,19 @@ ShaderProgram& ShaderProgram::operator=(ShaderProgram&& other) {
     return *this;
 }
 
+void ShaderProgram::use() {
+    glUseProgram(program_);
+    check_for_gl_error();
+}
+
+GLint ShaderProgram::get_input_location(const std::string& name) const {
+    GLint location =
+        glGetProgramResourceLocation(program_, GL_PROGRAM_INPUT, name.c_str());
+    check_for_gl_error();
+    if (location < 0) {
+        throw std::runtime_error("No such shader attribute: " + name);
+    }
+    return location;
+}
+
 } // namespace imageviewer

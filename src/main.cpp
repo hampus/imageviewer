@@ -27,6 +27,16 @@ void error_callback(int error, const char* description) {
     exit(1);
 }
 
+void GLAPIENTRY gl_message_callback(GLenum source, GLenum type, GLuint id,
+                                    GLenum severity, GLsizei length,
+                                    const GLchar* message,
+                                    const void* userParam) {
+    fprintf(stderr,
+            "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
+            (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""), type,
+            severity, message);
+}
+
 int main(int argc, char* argv[]) {
     std::cout << "Starting image viewer...\n";
 
@@ -54,6 +64,9 @@ int main(int argc, char* argv[]) {
 
     glfwMakeContextCurrent(window);
     gladLoadGLES2Loader((GLADloadproc)glfwGetProcAddress);
+
+    glEnable(GL_DEBUG_OUTPUT);
+    glDebugMessageCallback(gl_message_callback, 0);
 
     int max_texture_size = 0;
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max_texture_size);

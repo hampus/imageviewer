@@ -33,6 +33,9 @@ void ImageViewer::init(const std::string& image_filename) {
 void ImageViewer::render(double time_delta) {
     glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
+
+    shader_.use();
+    square_.render(shader_);
 }
 
 } // namespace imageviewer
