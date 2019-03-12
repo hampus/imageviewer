@@ -23,7 +23,7 @@
 
 namespace imageviewer {
 
-void ImageViewer::init(const std::string& image_filename) {
+ImageViewer::ImageViewer(const std::string& image_filename) {
     // TODO: this assumes that the image fits in a single texture
     texture_ = Texture(Image(image_filename));
     shader_ = ShaderProgram(DATA_DIR "shaders/vert.glsl",
@@ -36,6 +36,11 @@ void ImageViewer::render(double time_delta) {
 
     shader_.use();
     square_.render(shader_);
+}
+
+void ImageViewer::set_size(int width, int height) {
+    std::cout << "Window size: " << width << " x " << height << "\n";
+    glViewport(0, 0, width, height);
 }
 
 } // namespace imageviewer

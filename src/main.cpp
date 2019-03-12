@@ -24,6 +24,7 @@ using imageviewer::ImageViewer;
 
 void error_callback(int error, const char* description) {
     std::cerr << "Error: " << description << "\n";
+    glfwTerminate();
     exit(1);
 }
 
@@ -35,6 +36,36 @@ void GLAPIENTRY gl_message_callback(GLenum source, GLenum type, GLuint id,
             "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
             (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""), type,
             severity, message);
+}
+
+void window_size_callback(GLFWwindow* window, int width, int height) {
+    auto viewer = static_cast<ImageViewer*>(glfwGetWindowUserPointer(window));
+    viewer->set_size(width, height);
+}
+
+void init_window_size(ImageViewer& viewer, GLFWwindow* window) {
+    int width, height;
+    glfwGetWindowSize(window, &width, &height);
+    viewer.set_size(width, height);
+}
+
+void main_loop(const std::string& filename, GLFWwindow* window) {
+    ImageViewer viewer(filename);
+
+    glfwSetWindowUserPointer(window, &viewer);
+    glfwSetWindowSizeCallback(window, window_size_callback);
+    init_window_size(viewer, window);
+
+    double last_time = glfwGetTime();
+    while (!glfwWindowShouldClose(window)) {
+        double time = glfwGetTime();
+        viewer.render(time - last_time);
+        last_time = time;
+
+        glfwSwapInterval(1);
+        glfwSwapBuffers(window);
+        glfwPollEvents();
+    }
 }
 
 int main(int argc, char* argv[]) {
@@ -59,6 +90,7 @@ int main(int argc, char* argv[]) {
     GLFWwindow* window = glfwCreateWindow(640, 480, "Image viewer", NULL, NULL);
     if (!window) {
         std::cerr << "Failed to create a window\n";
+        glfwTerminate();
         exit(1);
     }
 
@@ -72,21 +104,11 @@ int main(int argc, char* argv[]) {
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max_texture_size);
     std::cout << "Max texture size: " << max_texture_size << "\n";
 
-    ImageViewer viewer;
-    viewer.init(filename);
+    main_loop(filename, window);
 
-    double last_time = glfwGetTime();
-    while (!glfwWindowShouldClose(window)) {
-        double time = glfwGetTime();
-        viewer.render(time - last_time);
-        last_time = time;
-
-        glfwSwapInterval(1);
-        glfwSwapBuffers(window);
-        glfwPollEvents();
-    }
-
+    std::cout << "Shutting down\n";
     glfwDestroyWindow(window);
+    glfwTerminate();
 
     return 0;
 }

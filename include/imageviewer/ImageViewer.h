@@ -26,9 +26,11 @@ namespace imageviewer {
 
 class ImageViewer {
   public:
-    void init(const std::string& image_filename);
+    ImageViewer(const std::string& image_filename);
 
     void render(double time_delta);
+
+    void set_size(int width, int height);
 
   private:
     Texture texture_;
