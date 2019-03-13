@@ -32,12 +32,15 @@ class ImageViewer {
 
     void set_size(int width, int height);
 
+    void key_event(int key, int action);
+
   private:
     Texture texture_;
     ShaderProgram shader_;
     SquareVertexArray square_;
     GLfloat pixel_width_;
     GLfloat pixel_height_;
+    bool srgb_enabled_;
 };
 
 } // namespace imageviewer

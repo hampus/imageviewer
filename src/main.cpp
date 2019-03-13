@@ -49,12 +49,19 @@ void init_window_size(ImageViewer& viewer, GLFWwindow* window) {
     viewer.set_size(width, height);
 }
 
+void key_callback(GLFWwindow* window, int key, int scancode, int action,
+                  int mods) {
+    auto viewer = static_cast<ImageViewer*>(glfwGetWindowUserPointer(window));
+    viewer->key_event(key, action);
+}
+
 void main_loop(const std::string& filename, GLFWwindow* window) {
     ImageViewer viewer(filename);
 
     glfwSetWindowUserPointer(window, &viewer);
     glfwSetWindowSizeCallback(window, window_size_callback);
     init_window_size(viewer, window);
+    glfwSetKeyCallback(window, key_callback);
 
     double last_time = glfwGetTime();
     while (!glfwWindowShouldClose(window)) {
@@ -64,7 +71,7 @@ void main_loop(const std::string& filename, GLFWwindow* window) {
 
         glfwSwapInterval(1);
         glfwSwapBuffers(window);
-        glfwPollEvents();
+        glfwWaitEvents();
     }
 }
 

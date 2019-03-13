@@ -23,7 +23,8 @@
 
 namespace imageviewer {
 
-ImageViewer::ImageViewer(const std::string& image_filename) {
+ImageViewer::ImageViewer(const std::string& image_filename)
+    : srgb_enabled_{true} {
     // TODO: this assumes that the image fits in a single texture
     texture_ = Texture(Image(image_filename));
     shader_ = ShaderProgram(DATA_DIR "shaders/vert.glsl",
@@ -39,6 +40,7 @@ void ImageViewer::render(double time_delta) {
     shader_.set_uniform("tex0", 0);
     shader_.set_uniform("pixel_width", pixel_width_);
     shader_.set_uniform("pixel_height", pixel_height_);
+    shader_.set_uniform("srgb_enabled", srgb_enabled_ ? 1 : 0);
     square_.render(shader_);
 }
 
@@ -61,6 +63,13 @@ void ImageViewer::set_size(int width, int height) {
     glViewport(vx, vy, vw, vh);
     pixel_width_ = 1.0 / vw;
     pixel_height_ = 1.0 / vh;
+}
+
+void ImageViewer::key_event(int key, int action) {
+    if (key == GLFW_KEY_S && action == GLFW_PRESS) {
+        srgb_enabled_ = !srgb_enabled_;
+        std::cout << "sRGB: " << srgb_enabled_ << "\n";
+    }
 }
 
 } // namespace imageviewer
