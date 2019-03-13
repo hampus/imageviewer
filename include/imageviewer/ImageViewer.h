@@ -36,6 +36,8 @@ class ImageViewer {
     Texture texture_;
     ShaderProgram shader_;
     SquareVertexArray square_;
+    GLfloat pixel_width_;
+    GLfloat pixel_height_;
 };
 
 } // namespace imageviewer

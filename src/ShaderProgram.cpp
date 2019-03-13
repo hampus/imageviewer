@@ -148,4 +148,26 @@ GLint ShaderProgram::get_input_location(const std::string& name) const {
     return location;
 }
 
+void ShaderProgram::set_uniform(const std::string& name, GLint value) const {
+    GLint location =
+        glGetProgramResourceLocation(program_, GL_UNIFORM, name.c_str());
+    check_for_gl_error();
+    if (location < 0) {
+        throw std::runtime_error("No such uniform: " + name);
+    }
+    glUniform1i(location, value);
+    check_for_gl_error();
+}
+
+void ShaderProgram::set_uniform(const std::string& name, GLfloat value) const {
+    GLint location =
+        glGetProgramResourceLocation(program_, GL_UNIFORM, name.c_str());
+    check_for_gl_error();
+    if (location < 0) {
+        throw std::runtime_error("No such uniform: " + name);
+    }
+    glUniform1f(location, value);
+    check_for_gl_error();
+}
+
 } // namespace imageviewer

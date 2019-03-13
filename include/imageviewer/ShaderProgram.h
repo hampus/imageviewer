@@ -41,6 +41,10 @@ class ShaderProgram {
 
     GLint get_input_location(const std::string& name) const;
 
+    void set_uniform(const std::string& name, GLint value) const;
+
+    void set_uniform(const std::string& name, GLfloat value) const;
+
   private:
     GLuint vert_shader_;
     GLuint frag_shader_;

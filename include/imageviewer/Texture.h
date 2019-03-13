@@ -37,8 +37,15 @@ class Texture {
     Texture(Texture&& other);
     Texture& operator=(Texture&& other);
 
+    void bind_to_unit(GLenum texture_unit);
+
+    int get_width() { return width_; }
+    int get_height() { return height_; }
+
   private:
     GLuint texture_;
+    int width_;
+    int height_;
 };
 
 } // namespace imageviewer
