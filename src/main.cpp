@@ -22,6 +22,8 @@
 
 using imageviewer::ImageViewer;
 
+namespace {
+
 void error_callback(int error, const char* description) {
     std::cerr << "Error: " << description << "\n";
     glfwTerminate();
@@ -55,6 +57,26 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action,
     viewer->key_event(key, action);
 }
 
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
+    auto viewer = static_cast<ImageViewer*>(glfwGetWindowUserPointer(window));
+    viewer->scroll_event(yoffset);
+}
+
+void mouse_button_callback(GLFWwindow* window, int button, int action,
+                           int mods) {
+    auto viewer = static_cast<ImageViewer*>(glfwGetWindowUserPointer(window));
+    double xpos, ypos;
+    glfwGetCursorPos(window, &xpos, &ypos);
+    viewer->mouse_button_event(button, action, xpos, ypos);
+}
+
+void cursor_position_callback(GLFWwindow* window, double xpos, double ypos) {
+    auto viewer = static_cast<ImageViewer*>(glfwGetWindowUserPointer(window));
+    viewer->mouse_move_event(xpos, ypos);
+}
+
+} // namespace
+
 void main_loop(const std::string& filename, GLFWwindow* window) {
     ImageViewer viewer(filename);
 
@@ -62,6 +84,9 @@ void main_loop(const std::string& filename, GLFWwindow* window) {
     glfwSetWindowSizeCallback(window, window_size_callback);
     init_window_size(viewer, window);
     glfwSetKeyCallback(window, key_callback);
+    glfwSetScrollCallback(window, scroll_callback);
+    glfwSetMouseButtonCallback(window, mouse_button_callback);
+    glfwSetCursorPosCallback(window, cursor_position_callback);
 
     double last_time = glfwGetTime();
     while (!glfwWindowShouldClose(window)) {

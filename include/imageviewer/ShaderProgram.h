@@ -19,6 +19,7 @@
 
 #include <imageviewer/glfw.h>
 
+#include <glm/mat4x4.hpp>
 #include <string>
 
 namespace imageviewer {
@@ -44,6 +45,8 @@ class ShaderProgram {
     void set_uniform(const std::string& name, GLint value) const;
 
     void set_uniform(const std::string& name, GLfloat value) const;
+
+    void set_uniform(const std::string& name, const glm::mat4& matrix) const;
 
   private:
     GLuint vert_shader_;

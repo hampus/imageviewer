@@ -17,6 +17,7 @@
 #ifndef IMAGEVIEWER_IMAGEVIEWER_H_
 #define IMAGEVIEWER_IMAGEVIEWER_H_
 
+#include <glm/vec2.hpp>
 #include <imageviewer/ShaderProgram.h>
 #include <imageviewer/SquareVertexArray.h>
 #include <imageviewer/Texture.h>
@@ -34,12 +35,26 @@ class ImageViewer {
 
     void key_event(int key, int action);
 
+    void scroll_event(double offset);
+
+    void mouse_button_event(int button, int action, double xpos, double ypos);
+
+    void mouse_move_event(double xpos, double ypos);
+
   private:
     Texture texture_;
     ShaderProgram shader_;
     SquareVertexArray square_;
+    int window_width_;
+    int window_height_;
     GLfloat pixel_width_;
     GLfloat pixel_height_;
+    bool mouse_down_;
+    double button_lastx_;
+    double button_lasty_;
+    double scale_;
+    double vertical_scale_;
+    glm::vec2 translate_;
     bool srgb_enabled_;
 };
 

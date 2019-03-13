@@ -17,6 +17,7 @@
 #include <imageviewer/ShaderProgram.h>
 
 #include <fstream>
+#include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 
 namespace imageviewer {
@@ -72,6 +73,16 @@ void link_program(GLuint program) {
     }
 
     check_for_gl_error();
+}
+
+GLint get_uniform_location(GLint program, const std::string& name) {
+    const GLint location =
+        glGetProgramResourceLocation(program, GL_UNIFORM, name.c_str());
+    check_for_gl_error();
+    if (location < 0) {
+        throw std::runtime_error("No such uniform: " + name);
+    }
+    return location;
 }
 
 } // namespace
@@ -139,7 +150,7 @@ void ShaderProgram::use() {
 }
 
 GLint ShaderProgram::get_input_location(const std::string& name) const {
-    GLint location =
+    const GLint location =
         glGetProgramResourceLocation(program_, GL_PROGRAM_INPUT, name.c_str());
     check_for_gl_error();
     if (location < 0) {
@@ -149,24 +160,21 @@ GLint ShaderProgram::get_input_location(const std::string& name) const {
 }
 
 void ShaderProgram::set_uniform(const std::string& name, GLint value) const {
-    GLint location =
-        glGetProgramResourceLocation(program_, GL_UNIFORM, name.c_str());
-    check_for_gl_error();
-    if (location < 0) {
-        throw std::runtime_error("No such uniform: " + name);
-    }
+    const GLint location = get_uniform_location(program_, name);
     glUniform1i(location, value);
     check_for_gl_error();
 }
 
 void ShaderProgram::set_uniform(const std::string& name, GLfloat value) const {
-    GLint location =
-        glGetProgramResourceLocation(program_, GL_UNIFORM, name.c_str());
-    check_for_gl_error();
-    if (location < 0) {
-        throw std::runtime_error("No such uniform: " + name);
-    }
+    const GLint location = get_uniform_location(program_, name);
     glUniform1f(location, value);
+    check_for_gl_error();
+}
+
+void ShaderProgram::set_uniform(const std::string& name,
+                                const glm::mat4& matrix) const {
+    const GLint location = get_uniform_location(program_, name);
+    glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(matrix));
     check_for_gl_error();
 }
 
