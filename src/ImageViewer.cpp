@@ -28,13 +28,14 @@
 namespace imageviewer {
 
 ImageViewer::ImageViewer(const std::string& image_filename)
-    : mouse_down_{false}, scale_{1.0}, translate_{0.0f},
-      srgb_enabled_{true}, best_fit_{true} {
+    : mouse_down_{false}, scale_{1.0}, translate_{0.0f}, srgb_enabled_{true},
+      gaussian_enabled_{true}, best_fit_{true} {
     // TODO: this assumes that the image fits in a single texture
     texture_ = Texture(Image(image_filename));
-    image_size_ = glm::dvec2(texture_.get_width(), texture_.get_width());
+    image_size_ = glm::dvec2(texture_.get_width(), texture_.get_height());
     shader_ = ShaderProgram(DATA_DIR "shaders/vert.glsl",
                             DATA_DIR "shaders/frag.glsl");
+    gaussian_factor_ = std::sqrt(1.0 / 2.0);
 }
 
 void ImageViewer::render(double time_delta) {
@@ -48,15 +49,20 @@ void ImageViewer::render(double time_delta) {
     transform_pos =
         glm::scale(transform_pos, glm::dvec3(image_size_ / 2.0, 1.0));
 
-    float pixel_size = 1.0 / scale_;
+    float pixel_size = std::max(1.0 / scale_, 1.0);
+    float gaussian_sigma = pixel_size * gaussian_factor_;
+    std::cout << "pixel size: " << pixel_size << "\n";
+    std::cout << "gaussian sigma: " << gaussian_sigma << "\n";
 
     shader_.use();
     texture_.bind_to_unit(GL_TEXTURE0);
     shader_.set_uniform("tex0", 0);
     shader_.set_uniform("transform_pos", transform_pos);
     shader_.set_uniform("image_size", image_size_);
-    // shader_.set_uniform("pixel_size", pixel_size);
-    // shader_.set_uniform("srgb_enabled", srgb_enabled_ ? 1 : 0);
+    shader_.set_uniform("pixel_size", pixel_size);
+    shader_.set_uniform("gaussian_sigma", gaussian_sigma);
+    shader_.set_uniform("srgb_enabled", srgb_enabled_ ? 1 : 0);
+    shader_.set_uniform("gaussian_enabled", gaussian_enabled_ ? 1 : 0);
     square_.render(shader_);
 }
 
@@ -74,6 +80,9 @@ void ImageViewer::key_event(int key, int action) {
     if (key == GLFW_KEY_S && action == GLFW_PRESS) {
         srgb_enabled_ = !srgb_enabled_;
         std::cout << "sRGB: " << srgb_enabled_ << "\n";
+    } else if (key == GLFW_KEY_G && action == GLFW_PRESS) {
+        gaussian_enabled_ = !gaussian_enabled_;
+        std::cout << "Gaussian: " << gaussian_enabled_ << "\n";
     } else if (key == GLFW_KEY_F && action == GLFW_PRESS) {
         best_fit_ = true;
         std::cout << "Best fit: true\n";
@@ -85,6 +94,12 @@ void ImageViewer::key_event(int key, int action) {
         }
         translate_ = glm::dvec2(0.0);
         scale_ = 1.0;
+    } else if (key == GLFW_KEY_Q &&
+               (action == GLFW_PRESS || action == GLFW_REPEAT)) {
+        gaussian_factor_ *= 1.1;
+    } else if (key == GLFW_KEY_W &&
+               (action == GLFW_PRESS || action == GLFW_REPEAT)) {
+        gaussian_factor_ /= 1.1;
     }
 }
 

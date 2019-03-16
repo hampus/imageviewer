@@ -54,7 +54,9 @@ class ImageViewer {
     double scale_;
     glm::dvec2 translate_;
     bool srgb_enabled_;
+    bool gaussian_enabled_;
     bool best_fit_;
+    double gaussian_factor_;
 };
 
 } // namespace imageviewer

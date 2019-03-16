@@ -6,6 +6,8 @@ in highp vec2 texcoord;
 uniform sampler2D tex0;
 uniform highp float pixel_size;
 uniform bool srgb_enabled;
+uniform bool gaussian_enabled;
+uniform highp float gaussian_sigma;
 
 out highp vec3 out_color;
 
@@ -35,7 +37,45 @@ highp vec3 srgb_to_rgb(vec3 rgb) {
     return vec3(srgb_to_linear(rgb.r), srgb_to_linear(rgb.g), srgb_to_linear(rgb.b));
 }
 
+highp vec3 gaussian_filter() {
+    highp vec3 color = vec3(0.0);
+    highp float total_weight = 0.0;
+    highp float a = 1.0 / gaussian_sigma;
+    ivec2 start = ivec2(ceil(texcoord.x - gaussian_sigma*3.0), ceil(texcoord.y - gaussian_sigma*3.0));
+    ivec2 end = ivec2(floor(texcoord.x + gaussian_sigma*3.0), floor(texcoord.y + gaussian_sigma*3.0));
+    for (int y = start.y; y <= end.y; y++) {
+        for (int x = start.x; x <= end.x; x++) {
+            highp vec2 delta = (vec2(x, y) - texcoord);
+            highp float weight = exp(-a*a*(delta.x*delta.x + delta.y*delta.y));
+            highp vec3 c = texelFetch(tex0, ivec2(x, y), 0).xyz;
+            color += srgb_to_rgb(c) * weight;
+            total_weight += weight;
+        }
+    }
+    return rgb_to_srgb(color / total_weight);
+}
+
+highp vec3 box_filter() {
+    highp vec3 color = vec3(0.0);
+    highp float total_weight = 0.0;
+    ivec2 start = ivec2(ceil(texcoord.x - pixel_size*0.5), ceil(texcoord.y - pixel_size*0.5));
+    ivec2 end = ivec2(floor(texcoord.x + pixel_size*0.5), floor(texcoord.y + pixel_size*0.5));
+    for (int y = start.y; y <= end.y; y++) {
+        for (int x = start.x; x <= end.x; x++) {
+            highp vec3 c = texelFetch(tex0, ivec2(x, y), 0).xyz;
+            color += srgb_to_rgb(c);
+            total_weight += 1.0;
+        }
+    }
+    return rgb_to_srgb(color / total_weight);
+}
+
+
 void main()
 {
-    out_color = texelFetch(tex0, ivec2(texcoord), 0).xyz;
+    if (gaussian_enabled) {
+        out_color = gaussian_filter();
+    } else {
+        out_color = box_filter();
+    }
 }
