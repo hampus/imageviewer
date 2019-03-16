@@ -178,4 +178,11 @@ void ShaderProgram::set_uniform(const std::string& name,
     check_for_gl_error();
 }
 
+void ShaderProgram::set_uniform(const std::string& name,
+                                const glm::vec2& vector) const {
+    const GLint location = get_uniform_location(program_, name);
+    glUniform2fv(location, 1, glm::value_ptr(vector));
+    check_for_gl_error();
+}
+
 } // namespace imageviewer

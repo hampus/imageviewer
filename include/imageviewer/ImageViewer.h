@@ -35,27 +35,26 @@ class ImageViewer {
 
     void key_event(int key, int action);
 
-    void scroll_event(double offset);
+    void scroll_event(double offset, glm::dvec2 pos);
 
-    void mouse_button_event(int button, int action, double xpos, double ypos);
+    void mouse_button_event(int button, int action, glm::dvec2 pos);
 
-    void mouse_move_event(double xpos, double ypos);
+    void mouse_move_event(glm::dvec2 pos);
 
   private:
+    void calc_best_fit();
+
     Texture texture_;
     ShaderProgram shader_;
     SquareVertexArray square_;
-    int window_width_;
-    int window_height_;
-    GLfloat pixel_width_;
-    GLfloat pixel_height_;
+    glm::dvec2 window_size_;
+    glm::dvec2 image_size_;
+    glm::dvec2 mouse_last_pos_;
     bool mouse_down_;
-    double button_lastx_;
-    double button_lasty_;
     double scale_;
-    double vertical_scale_;
-    glm::vec2 translate_;
+    glm::dvec2 translate_;
     bool srgb_enabled_;
+    bool best_fit_;
 };
 
 } // namespace imageviewer

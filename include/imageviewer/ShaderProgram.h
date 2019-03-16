@@ -48,6 +48,8 @@ class ShaderProgram {
 
     void set_uniform(const std::string& name, const glm::mat4& matrix) const;
 
+    void set_uniform(const std::string& name, const glm::vec2& vector) const;
+
   private:
     GLuint vert_shader_;
     GLuint frag_shader_;

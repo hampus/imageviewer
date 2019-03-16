@@ -19,6 +19,7 @@
 #include <cmath>
 #include <config.h>
 #include <glm/ext/matrix_transform.hpp>
+#include <glm/ext/scalar_common.hpp>
 #include <glm/mat4x4.hpp>
 #include <imageviewer/Image.h>
 #include <imageviewer/glfw.h>
@@ -27,10 +28,11 @@
 namespace imageviewer {
 
 ImageViewer::ImageViewer(const std::string& image_filename)
-    : mouse_down_{false}, scale_{1.0}, translate_{0.0f}, srgb_enabled_{true},
-      window_width_{0}, window_height_{0} {
+    : mouse_down_{false}, scale_{1.0}, translate_{0.0f},
+      srgb_enabled_{true}, best_fit_{true} {
     // TODO: this assumes that the image fits in a single texture
     texture_ = Texture(Image(image_filename));
+    image_size_ = glm::dvec2(texture_.get_width(), texture_.get_width());
     shader_ = ShaderProgram(DATA_DIR "shaders/vert.glsl",
                             DATA_DIR "shaders/frag.glsl");
 }
@@ -39,66 +41,95 @@ void ImageViewer::render(double time_delta) {
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    glm::mat4 transform(1.0f);
-    transform = glm::scale(transform,
-                           glm::vec3(scale_, scale_ * vertical_scale_, 1.0f));
-    transform = glm::translate(transform, glm::vec3(translate_, 0.0f));
+    glm::dmat4 transform_pos(1.0);
+    transform_pos =
+        glm::scale(transform_pos, glm::dvec3(2.0 * scale_ / window_size_, 1.0));
+    transform_pos = glm::translate(transform_pos, glm::dvec3(translate_, 0.0));
+    transform_pos =
+        glm::scale(transform_pos, glm::dvec3(image_size_ / 2.0, 1.0));
 
-    double xscale = 1.0 / window_width_ / scale_;
-    double yscale = 1.0 / window_height_ / scale_ / vertical_scale_;
+    float pixel_size = 1.0 / scale_;
 
     shader_.use();
     texture_.bind_to_unit(GL_TEXTURE0);
     shader_.set_uniform("tex0", 0);
-    shader_.set_uniform("transform", transform);
-    shader_.set_uniform("pixel_width", static_cast<float>(xscale));
-    shader_.set_uniform("pixel_height", static_cast<float>(yscale));
-    shader_.set_uniform("srgb_enabled", srgb_enabled_ ? 1 : 0);
+    shader_.set_uniform("transform_pos", transform_pos);
+    shader_.set_uniform("image_size", image_size_);
+    // shader_.set_uniform("pixel_size", pixel_size);
+    // shader_.set_uniform("srgb_enabled", srgb_enabled_ ? 1 : 0);
     square_.render(shader_);
 }
 
 void ImageViewer::set_size(int width, int height) {
-    window_width_ = width;
-    window_height_ = height;
-    double imageAspect =
-        static_cast<double>(texture_.get_width()) / texture_.get_height();
-    double windowAspect = static_cast<double>(width) / height;
-    vertical_scale_ = windowAspect / imageAspect;
+    window_size_ = glm::dvec2(width, height);
+
     glViewport(0, 0, width, height);
+
+    if (best_fit_) {
+        calc_best_fit();
+    }
 }
 
 void ImageViewer::key_event(int key, int action) {
     if (key == GLFW_KEY_S && action == GLFW_PRESS) {
         srgb_enabled_ = !srgb_enabled_;
         std::cout << "sRGB: " << srgb_enabled_ << "\n";
+    } else if (key == GLFW_KEY_F && action == GLFW_PRESS) {
+        best_fit_ = true;
+        std::cout << "Best fit: true\n";
+        calc_best_fit();
+    } else if (key == GLFW_KEY_1 && action == GLFW_PRESS) {
+        if (best_fit_) {
+            best_fit_ = false;
+            std::cout << "Best fit: false\n";
+        }
+        translate_ = glm::dvec2(0.0);
+        scale_ = 1.0;
     }
 }
 
-void ImageViewer::scroll_event(double offset) {
-    scale_ = scale_ * pow(1.1, offset);
+void ImageViewer::scroll_event(double offset, glm::dvec2 pos) {
+    double change = pow(1.1, offset);
+    double old_scale = scale_;
+    scale_ = scale_ * change;
+    glm::dvec2 center = window_size_ / 2.0;
+    // Update translation (to keep the zooming centered on pos)
+    glm::dvec2 inverted_pos = glm::dvec2(pos.x, window_size_.y - pos.y);
+    translate_ = ((translate_ * old_scale + center - inverted_pos) * change +
+                  inverted_pos - center) /
+                 scale_;
+    if (best_fit_) {
+        best_fit_ = false;
+        std::cout << "Best fit: false\n";
+    }
 }
 
-void ImageViewer::mouse_button_event(int button, int action, double xpos,
-                                     double ypos) {
+void ImageViewer::mouse_button_event(int button, int action, glm::dvec2 pos) {
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
         mouse_down_ = true;
-        button_lastx_ = xpos;
-        button_lasty_ = ypos;
+        mouse_last_pos_ = pos;
     } else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE) {
         mouse_down_ = false;
     }
 }
 
-void ImageViewer::mouse_move_event(double xpos, double ypos) {
+void ImageViewer::mouse_move_event(glm::dvec2 pos) {
     if (mouse_down_) {
-        double deltax = xpos - button_lastx_;
-        double deltay = ypos - button_lasty_;
-        button_lastx_ = xpos;
-        button_lasty_ = ypos;
-        double xscale = 2.0 / window_width_ / scale_;
-        double yscale = 2.0 / window_height_ / scale_ / vertical_scale_;
-        translate_ += glm::vec2(deltax, -deltay) * glm::vec2(xscale, yscale);
+        glm::dvec2 delta = pos - mouse_last_pos_;
+        mouse_last_pos_ = pos;
+        translate_ += delta * glm::dvec2(1.0, -1.0) / scale_;
+        if (best_fit_) {
+            best_fit_ = false;
+            std::cout << "Best fit: false\n";
+        }
     }
+}
+
+void ImageViewer::calc_best_fit() {
+    double scale0 = window_size_.x / image_size_.x;
+    double scale1 = window_size_.y / image_size_.y;
+    scale_ = std::min(scale0, scale1);
+    translate_ = glm::dvec2(0.0);
 }
 
 } // namespace imageviewer

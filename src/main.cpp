@@ -16,6 +16,7 @@
 
 #include <imageviewer/glfw.h>
 
+#include <glm/vec2.hpp>
 #include <imageviewer/ImageViewer.h>
 #include <iostream>
 #include <string>
@@ -57,22 +58,26 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action,
     viewer->key_event(key, action);
 }
 
+glm::dvec2 get_mouse_pos(GLFWwindow* window) {
+    double xpos, ypos;
+    glfwGetCursorPos(window, &xpos, &ypos);
+    return glm::dvec2(xpos, ypos);
+}
+
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
     auto viewer = static_cast<ImageViewer*>(glfwGetWindowUserPointer(window));
-    viewer->scroll_event(yoffset);
+    viewer->scroll_event(yoffset, get_mouse_pos(window));
 }
 
 void mouse_button_callback(GLFWwindow* window, int button, int action,
                            int mods) {
     auto viewer = static_cast<ImageViewer*>(glfwGetWindowUserPointer(window));
-    double xpos, ypos;
-    glfwGetCursorPos(window, &xpos, &ypos);
-    viewer->mouse_button_event(button, action, xpos, ypos);
+    viewer->mouse_button_event(button, action, get_mouse_pos(window));
 }
 
 void cursor_position_callback(GLFWwindow* window, double xpos, double ypos) {
     auto viewer = static_cast<ImageViewer*>(glfwGetWindowUserPointer(window));
-    viewer->mouse_move_event(xpos, ypos);
+    viewer->mouse_move_event(glm::dvec2(xpos, ypos));
 }
 
 } // namespace

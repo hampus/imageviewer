@@ -39,7 +39,8 @@ class SquareVertexArray {
     void render(const ShaderProgram& program);
 
   private:
-    GLuint buffer_;
+    GLuint buffer_pos_;
+    GLuint buffer_tex_;
 };
 
 } // namespace imageviewer

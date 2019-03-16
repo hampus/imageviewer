@@ -1,11 +1,10 @@
 #version 320 es
 
 in highp vec4 gl_FragCoord;
-in highp vec2 position;
+in highp vec2 texcoord;
 
 uniform sampler2D tex0;
-uniform highp float pixel_width;
-uniform highp float pixel_height;
+uniform highp float pixel_size;
 uniform bool srgb_enabled;
 
 out highp vec3 out_color;
@@ -38,13 +37,5 @@ highp vec3 srgb_to_rgb(vec3 rgb) {
 
 void main()
 {
-    highp vec3 sum = vec3(0.0, 0.0, 0.0);
-    for (int x = 0; x < 6; x++) {
-        for (int y = 0; y < 6; y++) {
-            highp vec2 offset = vec2(pixel_width * float(x), pixel_height * float(y)) / 6.0;
-            sum += srgb_to_rgb(texture(tex0, position*vec2(0.5, -0.5) + vec2(0.5, 0.5) + offset).xyz);
-        }
-    }
-    highp vec3 rgb_color = sum / 36.0;
-    out_color = rgb_to_srgb(rgb_color);
+    out_color = texelFetch(tex0, ivec2(texcoord), 0).xyz;
 }
