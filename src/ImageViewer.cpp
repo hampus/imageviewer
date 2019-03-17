@@ -27,16 +27,17 @@
 
 namespace imageviewer {
 
-ImageViewer::ImageViewer(const std::string& image_filename)
-    : mouse_down_{false}, scale_{1.0}, translate_{0.0f}, srgb_enabled_{true},
-      gaussian_enabled_{true}, best_fit_{true} {
+const double PI = 3.14159265358979;
+
+ImageViewer::ImageViewer(const std::string& image_filename, GLFWwindow* window)
+    : window_{window}, mouse_down_{false}, scale_{1.0}, translate_{0.0f},
+      srgb_enabled_{true}, filter_type_{1}, best_fit_{false} {
     // TODO: this assumes that the image fits in a single texture
     texture_ = Texture(Image(image_filename));
     image_size_ = glm::dvec2(texture_.get_width(), texture_.get_height());
     shader_ = ShaderProgram(DATA_DIR "shaders/vert.glsl",
                             DATA_DIR "shaders/frag.glsl");
-    gaussian_factor_ = 3.559707331246876; // half amplitude at 0.5 frequency
-    // gaussian_factor_ = 1.779853665623438; // 0.25 amplitude at 0.5 frequency
+    update_window_title();
 }
 
 void ImageViewer::render(double time_delta) {
@@ -51,9 +52,8 @@ void ImageViewer::render(double time_delta) {
         glm::scale(transform_pos, glm::dvec3(image_size_ / 2.0, 1.0));
 
     float pixel_size = std::max(1.0 / scale_, 1.0);
-    float gaussian_sigma = pixel_size * gaussian_factor_;
-    std::cout << "pixel size: " << pixel_size << "\n";
-    std::cout << "gaussian sigma: " << gaussian_sigma << "\n";
+    float gaussian_sigma = get_unscaled_gaussian_sigma();
+    float scaled_gaussian_sigma = pixel_size * gaussian_sigma;
 
     shader_.use();
     texture_.bind_to_unit(GL_TEXTURE0);
@@ -61,9 +61,9 @@ void ImageViewer::render(double time_delta) {
     shader_.set_uniform("transform_pos", transform_pos);
     shader_.set_uniform("image_size", image_size_);
     shader_.set_uniform("pixel_size", pixel_size);
-    shader_.set_uniform("gaussian_sigma", gaussian_sigma);
+    shader_.set_uniform("gaussian_sigma", scaled_gaussian_sigma);
     shader_.set_uniform("srgb_enabled", srgb_enabled_ ? 1 : 0);
-    shader_.set_uniform("gaussian_enabled", gaussian_enabled_ ? 1 : 0);
+    shader_.set_uniform("filter_type", filter_type_);
     square_.render(shader_);
 }
 
@@ -81,9 +81,18 @@ void ImageViewer::key_event(int key, int action) {
     if (key == GLFW_KEY_S && action == GLFW_PRESS) {
         srgb_enabled_ = !srgb_enabled_;
         std::cout << "sRGB: " << srgb_enabled_ << "\n";
-    } else if (key == GLFW_KEY_G && action == GLFW_PRESS) {
-        gaussian_enabled_ = !gaussian_enabled_;
-        std::cout << "Gaussian: " << gaussian_enabled_ << "\n";
+    } else if (key == GLFW_KEY_E && action == GLFW_PRESS) {
+        filter_type_--;
+        if (filter_type_ < 0) {
+            filter_type_ = 2;
+        }
+        std::cout << "Filter type: " << get_filter_name() << "\n";
+    } else if (key == GLFW_KEY_R && action == GLFW_PRESS) {
+        filter_type_++;
+        if (filter_type_ > 2) {
+            filter_type_ = 0;
+        }
+        std::cout << "Filter type: " << get_filter_name() << "\n";
     } else if (key == GLFW_KEY_F && action == GLFW_PRESS) {
         best_fit_ = true;
         std::cout << "Best fit: true\n";
@@ -95,13 +104,8 @@ void ImageViewer::key_event(int key, int action) {
         }
         translate_ = glm::dvec2(0.0);
         scale_ = 1.0;
-    } else if (key == GLFW_KEY_Q &&
-               (action == GLFW_PRESS || action == GLFW_REPEAT)) {
-        gaussian_factor_ *= 1.1;
-    } else if (key == GLFW_KEY_W &&
-               (action == GLFW_PRESS || action == GLFW_REPEAT)) {
-        gaussian_factor_ /= 1.1;
     }
+    update_window_title();
 }
 
 void ImageViewer::scroll_event(double offset, glm::dvec2 pos) {
@@ -146,6 +150,34 @@ void ImageViewer::calc_best_fit() {
     double scale1 = window_size_.y / image_size_.y;
     scale_ = std::min(scale0, scale1);
     translate_ = glm::dvec2(0.0);
+}
+
+void ImageViewer::update_window_title() {
+    std::string title = "ImageViewer (" + get_filter_name();
+    if (!srgb_enabled_) {
+        title += "; sRGB off";
+    }
+    title += ")";
+    glfwSetWindowTitle(window_, title.c_str());
+}
+
+std::string ImageViewer::get_filter_name() {
+    switch (filter_type_) {
+    case 0:
+        return "Gaussian";
+    case 1:
+        return "Lanczos3";
+    case 2:
+        return "Box";
+    default:
+        return "Unknown";
+    }
+}
+
+double ImageViewer::get_unscaled_gaussian_sigma() {
+    double gauss_target =
+        1.0 / 3.0; // frequency response at half sampling frequency
+    return std::sqrt(2.0) * std::sqrt(-std::log(gauss_target)) / PI;
 }
 
 } // namespace imageviewer

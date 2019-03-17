@@ -83,7 +83,7 @@ void cursor_position_callback(GLFWwindow* window, double xpos, double ypos) {
 } // namespace
 
 void main_loop(const std::string& filename, GLFWwindow* window) {
-    ImageViewer viewer(filename);
+    ImageViewer viewer(filename, window);
 
     glfwSetWindowUserPointer(window, &viewer);
     glfwSetWindowSizeCallback(window, window_size_callback);
@@ -124,6 +124,7 @@ int main(int argc, char* argv[]) {
     glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+    glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
     GLFWwindow* window = glfwCreateWindow(640, 480, "Image viewer", NULL, NULL);
     if (!window) {
         std::cerr << "Failed to create a window\n";

@@ -27,7 +27,7 @@ namespace imageviewer {
 
 class ImageViewer {
   public:
-    ImageViewer(const std::string& image_filename);
+    ImageViewer(const std::string& image_filename, GLFWwindow* window);
 
     void render(double time_delta);
 
@@ -43,7 +43,11 @@ class ImageViewer {
 
   private:
     void calc_best_fit();
+    void update_window_title();
+    std::string get_filter_name();
+    double get_unscaled_gaussian_sigma();
 
+    GLFWwindow* window_;
     Texture texture_;
     ShaderProgram shader_;
     SquareVertexArray square_;
@@ -54,9 +58,8 @@ class ImageViewer {
     double scale_;
     glm::dvec2 translate_;
     bool srgb_enabled_;
-    bool gaussian_enabled_;
+    int filter_type_;
     bool best_fit_;
-    double gaussian_factor_;
 };
 
 } // namespace imageviewer
