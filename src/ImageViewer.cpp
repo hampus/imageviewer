@@ -31,7 +31,7 @@ const double PI = 3.14159265358979;
 
 ImageViewer::ImageViewer(const std::string& image_filename, GLFWwindow* window)
     : window_{window}, mouse_down_{false}, scale_{1.0}, translate_{0.0f},
-      srgb_enabled_{true}, filter_type_{1}, best_fit_{false} {
+      srgb_enabled_{true}, filter_type_{2}, best_fit_{false} {
     // TODO: this assumes that the image fits in a single texture
     texture_ = Texture(Image(image_filename));
     image_size_ = glm::dvec2(texture_.get_width(), texture_.get_height());
@@ -84,12 +84,12 @@ void ImageViewer::key_event(int key, int action) {
     } else if (key == GLFW_KEY_E && action == GLFW_PRESS) {
         filter_type_--;
         if (filter_type_ < 0) {
-            filter_type_ = 2;
+            filter_type_ = 3;
         }
         std::cout << "Filter type: " << get_filter_name() << "\n";
     } else if (key == GLFW_KEY_R && action == GLFW_PRESS) {
         filter_type_++;
-        if (filter_type_ > 2) {
+        if (filter_type_ > 3) {
             filter_type_ = 0;
         }
         std::cout << "Filter type: " << get_filter_name() << "\n";
@@ -109,7 +109,7 @@ void ImageViewer::key_event(int key, int action) {
 }
 
 void ImageViewer::scroll_event(double offset, glm::dvec2 pos) {
-    double change = pow(1.1, offset);
+    double change = pow(1.075, offset);
     double old_scale = scale_;
     scale_ = scale_ * change;
     glm::dvec2 center = window_size_ / 2.0;
@@ -164,10 +164,12 @@ void ImageViewer::update_window_title() {
 std::string ImageViewer::get_filter_name() {
     switch (filter_type_) {
     case 0:
-        return "Gaussian";
+        return "Tent";
     case 1:
-        return "Lanczos3";
+        return "Gaussian";
     case 2:
+        return "Lanczos3";
+    case 3:
         return "Box";
     default:
         return "Unknown";
