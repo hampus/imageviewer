@@ -45,7 +45,7 @@ class ImageViewer {
     void calc_best_fit();
     void update_window_title();
     std::string get_filter_name();
-    double get_unscaled_gaussian_sigma();
+    double get_gaussian_sigma();
 
     GLFWwindow* window_;
     Texture texture_;

@@ -52,8 +52,8 @@ void ImageViewer::render(double time_delta) {
         glm::scale(transform_pos, glm::dvec3(image_size_ / 2.0, 1.0));
 
     float pixel_size = std::max(1.0 / scale_, 1.0);
-    float gaussian_sigma = get_unscaled_gaussian_sigma();
-    float scaled_gaussian_sigma = pixel_size * gaussian_sigma;
+    float gaussian_sigma = get_gaussian_sigma();
+    float gaussian_a = 1.0 / (2.0 * gaussian_sigma * gaussian_sigma);
 
     shader_.use();
     texture_.bind_to_unit(GL_TEXTURE0);
@@ -61,7 +61,7 @@ void ImageViewer::render(double time_delta) {
     shader_.set_uniform("transform_pos", transform_pos);
     shader_.set_uniform("image_size", image_size_);
     shader_.set_uniform("pixel_size", pixel_size);
-    shader_.set_uniform("gaussian_sigma", scaled_gaussian_sigma);
+    shader_.set_uniform("gaussian_a", gaussian_a);
     shader_.set_uniform("srgb_enabled", srgb_enabled_ ? 1 : 0);
     shader_.set_uniform("filter_type", filter_type_);
     square_.render(shader_);
@@ -176,7 +176,7 @@ std::string ImageViewer::get_filter_name() {
     }
 }
 
-double ImageViewer::get_unscaled_gaussian_sigma() {
+double ImageViewer::get_gaussian_sigma() {
     double gauss_target =
         1.0 / 3.0; // frequency response at half sampling frequency
     return std::sqrt(2.0) * std::sqrt(-std::log(gauss_target)) / PI;
