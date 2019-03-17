@@ -35,7 +35,8 @@ ImageViewer::ImageViewer(const std::string& image_filename)
     image_size_ = glm::dvec2(texture_.get_width(), texture_.get_height());
     shader_ = ShaderProgram(DATA_DIR "shaders/vert.glsl",
                             DATA_DIR "shaders/frag.glsl");
-    gaussian_factor_ = std::sqrt(1.0 / 2.0);
+    gaussian_factor_ = 3.559707331246876; // half amplitude at 0.5 frequency
+    // gaussian_factor_ = 1.779853665623438; // 0.25 amplitude at 0.5 frequency
 }
 
 void ImageViewer::render(double time_delta) {

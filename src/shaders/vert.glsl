@@ -12,5 +12,5 @@ uniform highp vec2 image_size;
 void main()
 {
     gl_Position = transform_pos * vec4(in_position, 0.0f, 1.0f);
-    texcoord = in_texcoord * image_size;
+    texcoord = in_texcoord * (image_size - vec2(1.0, 1.0));
 }

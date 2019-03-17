@@ -41,13 +41,19 @@ highp vec3 gaussian_filter() {
     highp vec3 color = vec3(0.0);
     highp float total_weight = 0.0;
     highp float a = 1.0 / gaussian_sigma;
+    ivec2 texsize = textureSize(tex0, 0);
     ivec2 start = ivec2(ceil(texcoord.x - gaussian_sigma*3.0), ceil(texcoord.y - gaussian_sigma*3.0));
     ivec2 end = ivec2(floor(texcoord.x + gaussian_sigma*3.0), floor(texcoord.y + gaussian_sigma*3.0));
     for (int y = start.y; y <= end.y; y++) {
         for (int x = start.x; x <= end.x; x++) {
             highp vec2 delta = (vec2(x, y) - texcoord);
             highp float weight = exp(-a*a*(delta.x*delta.x + delta.y*delta.y));
-            highp vec3 c = texelFetch(tex0, ivec2(x, y), 0).xyz;
+            highp ivec2 pos = ivec2(x, y);
+            if (pos.x >= texsize.x) pos.x = texsize.x*2 - pos.x;
+            if (pos.x < 0) pos.x = -pos.x;
+            if (pos.y >= texsize.y) pos.y = texsize.y*2 - pos.y;
+            if (pos.y < 0) pos.y = -pos.y;
+            highp vec3 c = texelFetch(tex0, pos, 0).xyz;
             color += srgb_to_rgb(c) * weight;
             total_weight += weight;
         }
