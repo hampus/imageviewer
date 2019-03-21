@@ -31,7 +31,7 @@ const double PI = 3.14159265358979;
 
 ImageViewer::ImageViewer(const std::string& image_filename, GLFWwindow* window)
     : window_{window}, mouse_down_{false}, scale_{1.0}, translate_{0.0f},
-      srgb_enabled_{true}, filter_type_{2}, best_fit_{false} {
+      srgb_enabled_{true}, filter_type_{2}, best_fit_{true} {
     // TODO: this assumes that the image fits in a single texture
     texture_ = Texture(Image(image_filename));
     image_size_ = glm::dvec2(texture_.get_width(), texture_.get_height());
@@ -122,6 +122,7 @@ void ImageViewer::scroll_event(double offset, glm::dvec2 pos) {
         best_fit_ = false;
         std::cout << "Best fit: false\n";
     }
+    update_window_title();
 }
 
 void ImageViewer::mouse_button_event(int button, int action, glm::dvec2 pos) {
@@ -150,10 +151,13 @@ void ImageViewer::calc_best_fit() {
     double scale1 = window_size_.y / image_size_.y;
     scale_ = std::min(scale0, scale1);
     translate_ = glm::dvec2(0.0);
+    update_window_title();
 }
 
 void ImageViewer::update_window_title() {
-    std::string title = "ImageViewer (" + get_filter_name();
+    std::string scale_text =
+        std::to_string((int)std::round(scale_ * 100.0)) + "%";
+    std::string title = "ImageViewer " + scale_text + " (" + get_filter_name();
     if (!srgb_enabled_) {
         title += "; sRGB off";
     }
@@ -177,9 +181,15 @@ std::string ImageViewer::get_filter_name() {
 }
 
 double ImageViewer::get_gaussian_sigma() {
-    double gauss_target =
-        1.0 / 3.0; // frequency response at half sampling frequency
-    return std::sqrt(2.0) * std::sqrt(-std::log(gauss_target)) / PI;
+    // double gauss_target =
+    //     1.0 / 2.0; // frequency response at half sampling frequency
+    // double s1 = std::sqrt(2.0) * std::sqrt(-std::log(gauss_target)) / PI;
+
+    // Same std-dev as the tent filter (ignoring windowing)
+    double s2 = std::sqrt(1.0 / 6.0);
+    // std::cout << "s1 = " << s1 << "\n";
+    // std::cout << "s2 = " << s2 << "\n";
+    return s2;
 }
 
 } // namespace imageviewer
