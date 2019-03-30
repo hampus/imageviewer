@@ -31,17 +31,29 @@ namespace {
 
 const double PI = 3.14159265358979;
 
+double cielab_lightness_to_linear(const double l) {
+    const double t = (l + 16.0) / 116.0;
+    const double d = 6.0 / 29.0;
+    if (t > d) {
+        return 100.0 * std::pow(t, 3.0);
+    } else {
+        return 100.0 * 3.0 * d * d * (t - 4.0 / 29.0);
+    }
+}
+
 double calc_gaussian_sigma() {
     // frequency response of perceptual brightness at half sampling frequency
     double gauss_target_perceptual = 0.5;
-    // Apply gamma of 0.43 (close to human perception of brightness)
-    double gauss_target = std::pow(gauss_target_perceptual, 1.0 / 0.43);
+    // Convert to linear brightness intensity (from CIELAB lightness)
+    double gauss_target =
+        cielab_lightness_to_linear(100.0 * gauss_target_perceptual) / 100.0;
     // Calculate sigma based on this frequency response at 0.5 Hz
     double sigma = std::sqrt(2.0) * std::sqrt(-std::log(gauss_target)) / PI;
 
-    std::cout << "Gaussian target frequency response at 0.5 Hz: "
+    std::cout << "Gaussian target frequency response (perceptual) at 0.5 Hz: "
               << gauss_target_perceptual << "\n";
-    std::cout << "Gaussian target (gamma corrected): " << gauss_target << "\n";
+    std::cout << "Gaussian target response (linear from CIELAB): "
+              << gauss_target << "\n";
     std::cout << "Gaussian sigma: " << sigma << "\n";
 
     return sigma;
