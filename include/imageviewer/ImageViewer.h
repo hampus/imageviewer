@@ -45,12 +45,12 @@ class ImageViewer {
     void calc_best_fit();
     void update_window_title();
     std::string get_filter_name();
-    double get_gaussian_sigma();
 
     GLFWwindow* window_;
     Texture texture_;
     ShaderProgram shader_;
     SquareVertexArray square_;
+    double gaussian_sigma_;
     glm::dvec2 window_size_;
     glm::dvec2 image_size_;
     glm::dvec2 mouse_last_pos_;

@@ -10,7 +10,7 @@ in vec2 texcoord;
 uniform sampler2D tex0;
 uniform float pixel_size;
 uniform bool srgb_enabled;
-uniform int filter_type;
+uniform int g_filter_type;
 uniform float gaussian_a;
 
 out vec3 out_color;
@@ -61,27 +61,27 @@ float tent(float x) {
     return 1.0 - abs(x);
 }
 
-float filter_width() {
+float filter_width(int filter_type) {
     if (filter_type == 0) {
         return 1.0; // Tent
     } else if (filter_type == 1) {
         float sigma = 1.0 / sqrt(2.0 * gaussian_a);
-        return sigma * 3.0; // Gaussian
-    } else if (filter_type == 2) {
-        return 3.0; // Lanczos3
+        return sigma * 8.0; // Gaussian
     } else if (filter_type == 3) {
+        return 3.0; // Lanczos3
+    } else if (filter_type == 4) {
         return 0.5; // Box
     }
 }
 
-float filter_weight(float x) {
+float filter_weight(int filter_type, float x) {
     if (filter_type == 0) {
         return tent(x); // Tent
     } else if (filter_type == 1) {
         return gauss(x, gaussian_a); // Gaussian
-    } else if (filter_type == 2) {
-        return lanczos(x, 3.0); // Lanczos3
     } else if (filter_type == 3) {
+        return lanczos(x, 3.0); // Lanczos3
+    } else if (filter_type == 4) {
         return 1.0; // Box
     }
 }
@@ -97,18 +97,19 @@ ivec2 wrap_mirrored(ivec2 x, ivec2 size) {
     return ivec2(wrap_single(x.x, size.x), wrap_single(x.y, size.y));
 }
 
-vec3 apply_filter() {
+vec3 apply_filter(int filter_type) {
     vec3 color = vec3(0.0);
     float total_weight = 0.0;
     float scale = pixel_size;
     ivec2 texsize = textureSize(tex0, 0);
-    float width = scale * filter_width();
+    float width = scale * filter_width(filter_type);
     ivec2 start = ivec2(ceil(texcoord.x - width), ceil(texcoord.y - width));
     ivec2 end = ivec2(floor(texcoord.x + width), floor(texcoord.y + width));
     for (int y = start.y; y <= end.y; y++) {
         for (int x = start.x; x <= end.x; x++) {
             vec2 delta = (vec2(x, y) - texcoord) / scale;
-            float weight = filter_weight(delta.x) * filter_weight(delta.y);
+            float weight = filter_weight(filter_type, delta.x) *
+                filter_weight(filter_type, delta.y);
             ivec2 pos = wrap_mirrored(ivec2(x, y), texsize);
             vec3 c = texelFetch(tex0, pos, 0).xyz;
             color += srgb_to_rgb(c) * weight;
@@ -120,5 +121,9 @@ vec3 apply_filter() {
 
 void main()
 {
-    out_color = apply_filter();
+    if (g_filter_type == 2) {
+        out_color = 0.5*apply_filter(1) + 0.5*apply_filter(3);
+    } else {
+        out_color = apply_filter(g_filter_type);
+    }
 }

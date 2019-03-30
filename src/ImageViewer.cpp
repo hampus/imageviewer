@@ -27,11 +27,32 @@
 
 namespace imageviewer {
 
+namespace {
+
 const double PI = 3.14159265358979;
+
+double calc_gaussian_sigma() {
+    // frequency response of perceptual brightness at half sampling frequency
+    double gauss_target_perceptual = 0.5;
+    // Apply gamma of 0.43 (close to human perception of brightness)
+    double gauss_target = std::pow(gauss_target_perceptual, 1.0 / 0.43);
+    // Calculate sigma based on this frequency response at 0.5 Hz
+    double sigma = std::sqrt(2.0) * std::sqrt(-std::log(gauss_target)) / PI;
+
+    std::cout << "Gaussian target frequency response at 0.5 Hz: "
+              << gauss_target_perceptual << "\n";
+    std::cout << "Gaussian target (gamma corrected): " << gauss_target << "\n";
+    std::cout << "Gaussian sigma: " << sigma << "\n";
+
+    return sigma;
+}
+
+} // namespace
 
 ImageViewer::ImageViewer(const std::string& image_filename, GLFWwindow* window)
     : window_{window}, mouse_down_{false}, scale_{1.0}, translate_{0.0f},
-      srgb_enabled_{true}, filter_type_{2}, best_fit_{true} {
+      srgb_enabled_{true}, filter_type_{2}, best_fit_{true},
+      gaussian_sigma_{calc_gaussian_sigma()} {
     // TODO: this assumes that the image fits in a single texture
     texture_ = Texture(Image(image_filename));
     image_size_ = glm::dvec2(texture_.get_width(), texture_.get_height());
@@ -52,8 +73,7 @@ void ImageViewer::render(double time_delta) {
         glm::scale(transform_pos, glm::dvec3(image_size_ / 2.0, 1.0));
 
     float pixel_size = std::max(1.0 / scale_, 1.0);
-    float gaussian_sigma = get_gaussian_sigma();
-    float gaussian_a = 1.0 / (2.0 * gaussian_sigma * gaussian_sigma);
+    float gaussian_a = 1.0 / (2.0 * gaussian_sigma_ * gaussian_sigma_);
 
     shader_.use();
     texture_.bind_to_unit(GL_TEXTURE0);
@@ -63,7 +83,7 @@ void ImageViewer::render(double time_delta) {
     shader_.set_uniform("pixel_size", pixel_size);
     shader_.set_uniform("gaussian_a", gaussian_a);
     shader_.set_uniform("srgb_enabled", srgb_enabled_ ? 1 : 0);
-    shader_.set_uniform("filter_type", filter_type_);
+    shader_.set_uniform("g_filter_type", filter_type_);
     square_.render(shader_);
 }
 
@@ -84,12 +104,12 @@ void ImageViewer::key_event(int key, int action) {
     } else if (key == GLFW_KEY_E && action == GLFW_PRESS) {
         filter_type_--;
         if (filter_type_ < 0) {
-            filter_type_ = 3;
+            filter_type_ = 4;
         }
         std::cout << "Filter type: " << get_filter_name() << "\n";
     } else if (key == GLFW_KEY_R && action == GLFW_PRESS) {
         filter_type_++;
-        if (filter_type_ > 3) {
+        if (filter_type_ > 4) {
             filter_type_ = 0;
         }
         std::cout << "Filter type: " << get_filter_name() << "\n";
@@ -172,24 +192,14 @@ std::string ImageViewer::get_filter_name() {
     case 1:
         return "Gaussian";
     case 2:
-        return "Lanczos3";
+        return "GaussLanczos";
     case 3:
+        return "Lanczos3";
+    case 4:
         return "Box";
     default:
         return "Unknown";
     }
-}
-
-double ImageViewer::get_gaussian_sigma() {
-    // double gauss_target =
-    //     1.0 / 2.0; // frequency response at half sampling frequency
-    // double s1 = std::sqrt(2.0) * std::sqrt(-std::log(gauss_target)) / PI;
-
-    // Same std-dev as the tent filter (ignoring windowing)
-    double s2 = std::sqrt(1.0 / 6.0);
-    // std::cout << "s1 = " << s1 << "\n";
-    // std::cout << "s2 = " << s2 << "\n";
-    return s2;
 }
 
 } // namespace imageviewer
