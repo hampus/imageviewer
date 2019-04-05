@@ -87,6 +87,11 @@ void ImageViewer::render(double time_delta) {
     float pixel_size = std::max(1.0 / scale_, 1.0);
     float gaussian_a = 1.0 / (2.0 * gaussian_sigma_ * gaussian_sigma_);
 
+    int filter_type = filter_type_;
+    if (std::fabs(scale_ - 1.0) < 0.000001) {
+        filter_type = 4; // box when no scaling
+    }
+
     shader_.use();
     texture_.bind_to_unit(GL_TEXTURE0);
     shader_.set_uniform("tex0", 0);
@@ -95,7 +100,7 @@ void ImageViewer::render(double time_delta) {
     shader_.set_uniform("pixel_size", pixel_size);
     shader_.set_uniform("gaussian_a", gaussian_a);
     shader_.set_uniform("srgb_enabled", srgb_enabled_ ? 1 : 0);
-    shader_.set_uniform("g_filter_type", filter_type_);
+    shader_.set_uniform("g_filter_type", filter_type);
     square_.render(shader_);
 }
 
