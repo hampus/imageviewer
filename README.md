@@ -1,14 +1,40 @@
 # Image Viewer
 
+Experimental image viewer. Work in progress.
+
+## Dependencies
+
+Included in the source code:
+
+* [GLFW](https://www.glfw.org/)
+* [GLM](https://glm.g-truc.net/)
+* [stb_image](https://github.com/nothings/stb)
+* [glad](https://github.com/Dav1dde/glad)
+
+Other dependencies:
+
+* [CMake](https://cmake.org/)
+* C++ compiler (e.g. [Clang](https://clang.llvm.org/))
+* OpenGL ES 3.2
+
+Install a suitable compiler (e.g. clang), CMake, and the dependencies needed by
+GLFW.
+
+On Ubuntu, the dependencies can be installed by running:
+
+```console
+$ sudo apt install clang cmake libglfw3-dev
+```
+
+Note that GLFW itself is built from source, but its dependencies are needed.
+
 ## Git submodules
 
 To fetch and update all submodules, you can run:
 
 ```console
-$ git submodule sync --recursive && git submodule update --init --recursive --checkout --force
-Submodule 'external/glfw' (https://github.com/glfw/glfw.git) registered for path 'external/glfw'
-Cloning into '/data/hampus/src/github/imageviewer/external/glfw'...
-Submodule path 'external/glfw': checked out '2fbb560eb72fea695687d33066c91a329d6d0465'
+$ git submodule sync --recursive && git submodule update --init --recursive \
+    --checkout --force
 ```
 
 Note that this overwrites local changes in any of the submodule directories.
@@ -20,31 +46,27 @@ Build using CMake, by running for example:
 ```console
 $ mkdir build
 $ cd build
-$ CC=clang CXX=clang++ cmake -G Ninja -DCMAKE_BUILD_TYPE=Release ..
--- The C compiler identification is Clang 7.0.0
--- The CXX compiler identification is Clang 7.0.0
-...
-$ ninja
-[21/21] Linking CXX executable src/imageviewer
+$ CC=clang CXX=clang++ cmake -G Ninja -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_INSTALL_PREFIX=`pwd`/install ..
+$ ninja install
 ```
 
 The built executable can then be started like this:
 
 ```console
-$ ./src/imageviewer
+$ ./install/bin/imageviewer ../checkerboard.png
 Starting image viewer...
 ```
+
+checkerboard.png is an example image for testing.
 
 ## Extension loader: glad
 
 Re-generate the [glad](https://github.com/Dav1dde/glad) bindings using:
 
 ```console
-$ glad --generator c --spec gl --profile core --api "gles2=3.2" --no-loader --out-path external/glad/
-[INFO][glad       ]: downloading latest 'gl' specification
-[INFO][glad.opener]: opening: 'https://raw.githubusercontent.com/KhronosGroup/OpenGL-Registry/master/xml/gl.xml'
-[INFO][glad       ]: generating 'gl' bindings
-[INFO][glad       ]: generating 'gl' bindings - done
+$ glad --generator c --spec gl --profile core --api "gles2=3.2" --no-loader \
+    --out-path external/glad/
 ```
 
 ## License
