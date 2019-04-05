@@ -110,7 +110,7 @@ vec3 apply_filter(int filter_type) {
             vec2 delta = (vec2(x, y) - texcoord) / scale;
             float weight = filter_weight(filter_type, delta.x) *
                 filter_weight(filter_type, delta.y);
-            ivec2 pos = wrap_mirrored(ivec2(x, y), texsize);
+            ivec2 pos = wrap_mirrored(ivec2(x, y), texsize - ivec2(1, 1));
             vec3 c = texelFetch(tex0, pos, 0).xyz;
             color += srgb_to_rgb(c) * weight;
             total_weight += weight;
