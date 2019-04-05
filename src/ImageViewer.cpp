@@ -52,7 +52,7 @@ double calc_gaussian_sigma() {
 
 ImageViewer::ImageViewer(const std::string& image_filename, GLFWwindow* window)
     : window_{window}, mouse_down_{false}, scale_{1.0}, translate_{0.0f},
-      srgb_enabled_{true}, filter_type_{1}, best_fit_{true},
+      srgb_enabled_{true}, filter_type_{FilterType::AUTO}, best_fit_{true},
       gaussian_sigma_{calc_gaussian_sigma()} {
     // TODO: this assumes that the image fits in a single texture
     texture_ = Texture(Image(image_filename));
@@ -76,9 +76,13 @@ void ImageViewer::render(double time_delta) {
     float pixel_size = std::max(1.0 / scale_, 1.0);
     float gaussian_a = 1.0 / (2.0 * gaussian_sigma_ * gaussian_sigma_);
 
-    int filter_type = filter_type_;
+    FilterType filter_type = filter_type_;
     if (std::fabs(scale_ - 1.0) < 0.000001) {
-        filter_type = 3; // box when no scaling
+        filter_type = FilterType::BOX; // box when no scaling
+    } else if (filter_type == FilterType::AUTO && scale_ > 1.0) {
+        filter_type = FilterType::GAUSSIAN; // Gaussian for auto enlargement
+    } else if (filter_type == FilterType::AUTO) {
+        filter_type = FilterType::LANCZOS; // Lanczos3 for auto downscaling
     }
 
     shader_.use();
@@ -89,7 +93,7 @@ void ImageViewer::render(double time_delta) {
     shader_.set_uniform("pixel_size", pixel_size);
     shader_.set_uniform("gaussian_a", gaussian_a);
     shader_.set_uniform("srgb_enabled", srgb_enabled_ ? 1 : 0);
-    shader_.set_uniform("g_filter_type", filter_type);
+    shader_.set_uniform("g_filter_type", static_cast<int>(filter_type));
     square_.render(shader_);
 }
 
@@ -108,15 +112,47 @@ void ImageViewer::key_event(int key, int action) {
         srgb_enabled_ = !srgb_enabled_;
         std::cout << "sRGB: " << srgb_enabled_ << "\n";
     } else if (key == GLFW_KEY_E && action == GLFW_PRESS) {
-        filter_type_--;
-        if (filter_type_ < 0) {
-            filter_type_ = 3;
+        switch (filter_type_) {
+        case FilterType::AUTO:
+            filter_type_ = FilterType::LANCZOS;
+            break;
+        case FilterType::BOX:
+            filter_type_ = FilterType::AUTO;
+            break;
+        case FilterType::TENT:
+            filter_type_ = FilterType::BOX;
+            break;
+        case FilterType::GAUSSIAN:
+            filter_type_ = FilterType::TENT;
+            break;
+        case FilterType::LANCZOS:
+            filter_type_ = FilterType::GAUSSIAN;
+            break;
+        default:
+            std::cerr << "Unknown filter type\n";
+            break;
         }
         std::cout << "Filter type: " << get_filter_name() << "\n";
     } else if (key == GLFW_KEY_R && action == GLFW_PRESS) {
-        filter_type_++;
-        if (filter_type_ > 3) {
-            filter_type_ = 0;
+        switch (filter_type_) {
+        case FilterType::AUTO:
+            filter_type_ = FilterType::BOX;
+            break;
+        case FilterType::BOX:
+            filter_type_ = FilterType::TENT;
+            break;
+        case FilterType::TENT:
+            filter_type_ = FilterType::GAUSSIAN;
+            break;
+        case FilterType::GAUSSIAN:
+            filter_type_ = FilterType::LANCZOS;
+            break;
+        case FilterType::LANCZOS:
+            filter_type_ = FilterType::AUTO;
+            break;
+        default:
+            std::cerr << "Unknown filter type\n";
+            break;
         }
         std::cout << "Filter type: " << get_filter_name() << "\n";
     } else if (key == GLFW_KEY_F && action == GLFW_PRESS) {
@@ -193,14 +229,16 @@ void ImageViewer::update_window_title() {
 
 std::string ImageViewer::get_filter_name() {
     switch (filter_type_) {
-    case 0:
-        return "Tent";
-    case 1:
-        return "Gaussian";
-    case 2:
-        return "Lanczos3";
-    case 3:
+    case FilterType::AUTO:
+        return "Auto";
+    case FilterType::BOX:
         return "Box";
+    case FilterType::TENT:
+        return "Tent";
+    case FilterType::GAUSSIAN:
+        return "Gaussian";
+    case FilterType::LANCZOS:
+        return "Lanczos3";
     default:
         return "Unknown";
     }

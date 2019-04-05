@@ -15,7 +15,11 @@ uniform float gaussian_a;
 
 out vec3 out_color;
 
-float PI = 3.14159265358979;
+const float PI = 3.14159265358979;
+const int FILTER_BOX = 1;
+const int FILTER_TENT = 2;
+const int FILTER_GAUSSIAN = 3;
+const int FILTER_LANCZOS = 4;
 
 float linear_to_srgb(float c) {
     if(c <= 0.0031308) {
@@ -62,27 +66,27 @@ float tent(float x) {
 }
 
 float filter_width(int filter_type) {
-    if (filter_type == 0) {
-        return 1.0; // Tent
-    } else if (filter_type == 1) {
+    if (filter_type == FILTER_TENT) {
+        return 1.0;
+    } else if (filter_type == FILTER_GAUSSIAN) {
         float sigma = 1.0 / sqrt(2.0 * gaussian_a);
-        return sigma * 8.0; // Gaussian
-    } else if (filter_type == 2) {
-        return 3.0; // Lanczos3
-    } else if (filter_type == 3) {
-        return 0.5; // Box
+        return sigma * 8.0;
+    } else if (filter_type == FILTER_LANCZOS) {
+        return 3.0;
+    } else if (filter_type == FILTER_BOX) {
+        return 0.5;
     }
 }
 
 float filter_weight(int filter_type, float x) {
-    if (filter_type == 0) {
-        return tent(x); // Tent
-    } else if (filter_type == 1) {
-        return gauss(x, gaussian_a); // Gaussian
-    } else if (filter_type == 2) {
-        return lanczos(x, 3.0); // Lanczos3
-    } else if (filter_type == 3) {
-        return 1.0; // Box
+    if (filter_type == FILTER_TENT) {
+        return tent(x);
+    } else if (filter_type == FILTER_GAUSSIAN) {
+        return gauss(x, gaussian_a);
+    } else if (filter_type == FILTER_LANCZOS) {
+        return lanczos(x, 3.0);
+    } else if (filter_type == FILTER_BOX) {
+        return 1.0;
     }
 }
 

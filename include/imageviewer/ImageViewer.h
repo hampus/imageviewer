@@ -25,6 +25,14 @@
 
 namespace imageviewer {
 
+enum class FilterType {
+    AUTO = 0,
+    BOX = 1,
+    TENT = 2,
+    GAUSSIAN = 3,
+    LANCZOS = 4
+};
+
 class ImageViewer {
   public:
     ImageViewer(const std::string& image_filename, GLFWwindow* window);
@@ -58,7 +66,7 @@ class ImageViewer {
     double scale_;
     glm::dvec2 translate_;
     bool srgb_enabled_;
-    int filter_type_;
+    FilterType filter_type_;
     bool best_fit_;
 };
 
