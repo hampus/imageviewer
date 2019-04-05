@@ -67,9 +67,9 @@ float filter_width(int filter_type) {
     } else if (filter_type == 1) {
         float sigma = 1.0 / sqrt(2.0 * gaussian_a);
         return sigma * 8.0; // Gaussian
-    } else if (filter_type == 3) {
+    } else if (filter_type == 2) {
         return 3.0; // Lanczos3
-    } else if (filter_type == 4) {
+    } else if (filter_type == 3) {
         return 0.5; // Box
     }
 }
@@ -79,9 +79,9 @@ float filter_weight(int filter_type, float x) {
         return tent(x); // Tent
     } else if (filter_type == 1) {
         return gauss(x, gaussian_a); // Gaussian
-    } else if (filter_type == 3) {
+    } else if (filter_type == 2) {
         return lanczos(x, 3.0); // Lanczos3
-    } else if (filter_type == 4) {
+    } else if (filter_type == 3) {
         return 1.0; // Box
     }
 }
@@ -121,9 +121,5 @@ vec3 apply_filter(int filter_type) {
 
 void main()
 {
-    if (g_filter_type == 2) {
-        out_color = 0.5*apply_filter(1) + 0.5*apply_filter(3);
-    } else {
-        out_color = apply_filter(g_filter_type);
-    }
+    out_color = apply_filter(g_filter_type);
 }

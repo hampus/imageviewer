@@ -63,7 +63,7 @@ double calc_gaussian_sigma() {
 
 ImageViewer::ImageViewer(const std::string& image_filename, GLFWwindow* window)
     : window_{window}, mouse_down_{false}, scale_{1.0}, translate_{0.0f},
-      srgb_enabled_{true}, filter_type_{2}, best_fit_{true},
+      srgb_enabled_{true}, filter_type_{1}, best_fit_{true},
       gaussian_sigma_{calc_gaussian_sigma()} {
     // TODO: this assumes that the image fits in a single texture
     texture_ = Texture(Image(image_filename));
@@ -89,7 +89,7 @@ void ImageViewer::render(double time_delta) {
 
     int filter_type = filter_type_;
     if (std::fabs(scale_ - 1.0) < 0.000001) {
-        filter_type = 4; // box when no scaling
+        filter_type = 3; // box when no scaling
     }
 
     shader_.use();
@@ -121,12 +121,12 @@ void ImageViewer::key_event(int key, int action) {
     } else if (key == GLFW_KEY_E && action == GLFW_PRESS) {
         filter_type_--;
         if (filter_type_ < 0) {
-            filter_type_ = 4;
+            filter_type_ = 3;
         }
         std::cout << "Filter type: " << get_filter_name() << "\n";
     } else if (key == GLFW_KEY_R && action == GLFW_PRESS) {
         filter_type_++;
-        if (filter_type_ > 4) {
+        if (filter_type_ > 3) {
             filter_type_ = 0;
         }
         std::cout << "Filter type: " << get_filter_name() << "\n";
@@ -209,10 +209,8 @@ std::string ImageViewer::get_filter_name() {
     case 1:
         return "Gaussian";
     case 2:
-        return "GaussLanczos";
-    case 3:
         return "Lanczos3";
-    case 4:
+    case 3:
         return "Box";
     default:
         return "Unknown";
