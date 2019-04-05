@@ -174,6 +174,9 @@ void ImageViewer::scroll_event(double offset, glm::dvec2 pos) {
     double change = pow(1.075, offset);
     double old_scale = scale_;
     scale_ = scale_ * change;
+    if (std::fabs(scale_ - 1.0) < 0.01) {
+        scale_ = 1.0; // Snap to 100% when close
+    }
     glm::dvec2 center = window_size_ / 2.0;
     // Update translation (to keep the zooming centered on pos)
     glm::dvec2 inverted_pos = glm::dvec2(pos.x, window_size_.y - pos.y);
